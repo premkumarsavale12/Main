@@ -11,11 +11,15 @@ import { Right } from '@/blocks/Right/Component'
 import { Conten } from '@/blocks/Conten/Component'
 import { MainBlock } from '@/blocks/Main/Component'
 import { ContactBlock } from '@/blocks/Contact/Component'
-import { OemBlock } from '@/blocks/Oem/Component'
-import { Both } from '@/blocks/Both/Component'
-import { ContactsBlocks } from '@/blocks/ContactsBlocks/Component'
 import { DownComponent } from '@/blocks/Down/Component'
+import { ContactsBlocks } from '@/blocks/ContactsBlocks/Component'
+import { Both } from '@/blocks/Both/Component'
+import { OemBlock } from '@/blocks/Oem/Component'
 
+// Add a shared prop type for all blocks
+type BlockWithExtraProps = Page['layout'][0] & {
+  disableInnerContainer?: boolean;
+};
 
 const blockComponents = {
   archive: ArchiveBlock,
@@ -27,42 +31,35 @@ const blockComponents = {
   conten: Conten,
   main: MainBlock,
   contact: ContactBlock,
-  oem: OemBlock,
-  both: Both,
+  down: DownComponent,
   contactsblocks: ContactsBlocks,
-  down: DownComponent
-}
+  both: Both,
+  oem: OemBlock,
+};
 
 export const RenderBlocks: React.FC<{
   blocks: Page['layout'][0][]
-}> = (props) => {
-  const { blocks } = props
+}> = ({ blocks }) => {
 
-  const hasBlocks = blocks && Array.isArray(blocks) && blocks.length > 0
+  if (!blocks?.length) return null;
 
-  if (hasBlocks) {
-    return (
-      <Fragment>
-        {blocks.map((block, index) => {
-          const { blockType } = block
+  return (
+    <Fragment>
+      {blocks.map((block, index) => {
+        const { blockType } = block;
 
-          if (blockType && blockType in blockComponents) {
-            const Block = blockComponents[blockType]
+        if (blockType && blockType in blockComponents) {
+     const Block = blockComponents[blockType as keyof typeof blockComponents] as React.ComponentType<any>;
 
-            if (Block) {
-              return (
-                <div className="my-16" key={index}>
+          return (
+            <div className="my-16" key={index}>
+                <Block {...(block as any)} disableInnerContainer={true} />
+            </div>
+          );
+        }
 
-                  <Block {...block} disableInnerContainer />
-                </div>
-              )
-            }
-          }
-          return null
-        })}
-      </Fragment>
-    )
-  }
-
-  return null
-}
+        return null;
+      })}
+    </Fragment>
+  );
+};
